@@ -3,127 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Audio Chatbot Interface</title>
+    <title>Chatbot</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .chat-container {
-            width: 100%;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #fff;
+            width: 400px;
+            height: 600px;
+            background-color: white;
             border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-        }
-        .chat-title {
-            text-align: center;
-            font-size: 24px;
-            color: #388e3c;
-            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
         }
         .chat-box {
-            border: 1px solid #ddd;
-            padding: 10px;
-            min-height: 200px;
+            flex: 1;
             overflow-y: auto;
             margin-bottom: 20px;
-            height: 400px;
+            padding-right: 10px;
         }
-        .user-input {
-            width: 100%;
+        .message {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 10px;
+        }
+        .user-message {
+            background-color: #d3f4ff;
+            align-self: flex-end;
+        }
+        .bot-message {
+            background-color: #e0e0e0;
+            align-self: flex-start;
+        }
+        .input-container {
+            display: flex;
+        }
+        .input-container input {
+            flex: 1;
             padding: 10px;
-            font-size: 16px;
             border: 1px solid #ddd;
             border-radius: 5px;
         }
-        .send-button {
-            padding: 10px 20px;
-            background-color: #388e3c;
+        .input-container button {
+            background-color: #4CAF50;
             color: white;
+            padding: 10px;
             border: none;
             border-radius: 5px;
+            margin-left: 10px;
             cursor: pointer;
         }
-        .send-button:disabled {
-            background-color: #aaa;
-            cursor: not-allowed;
-        }
-        .message {
-            margin: 10px 0;
-        }
-        .bot-message {
-            text-align: left;
-            background-color: #e0f7fa;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .user-message {
-            text-align: right;
-            background-color: #f1f8e9;
-            padding: 10px;
-            border-radius: 5px;
+        .input-container button:disabled {
+            background-color: #ccc;
         }
     </style>
 </head>
 <body>
 
-    <div class="chat-container">
-        <h2 class="chat-title">Welcome to the Chatbot</h2>
-
-        <div id="chat-box" class="chat-box"></div>
-
-        <input id="user-input" class="user-input" type="text" placeholder="Type your message..." />
-        <button id="send-button" class="send-button">Send</button>
+<div class="chat-container">
+    <div id="chat-box" class="chat-box"></div>
+    <div class="input-container">
+        <input id="user-input" type="text" placeholder="Type a message" />
+        <button id="send-button" onclick="sendMessageToBot()">Send</button>
     </div>
+</div>
 
-    <script>
-        // Set your Sendbird app details
-        const APP_ID = 'BF738831-5030-460B-9891-AC5446AAE79C'; // Your application ID
-        const BOT_ID = 'onboarding_bot'; // Your bot ID
-        const REGION = 'ap-8'; // Your region
-        const API_URL = `https://api-${REGION}.sendbird.com/v3/bots/${BOT_ID}/messages`;
+<script>
+    // Your Sendbird API URL and Secondary API Token
+    const API_URL = 'https://api-BF738831-5030-460B-9891-AC5446AAE79C.sendbird.com'; // Replace with the correct API URL
+    const BOT_ID = 'onboarding_bot';  // The bot ID you are using
+    const MASTER_API_TOKEN = '06ab48d570b66099a56975c0de1ad7762ea904b6';  // Replace with your Secondary API Token if needed
 
-        // Text-to-Speech function
-        function speakText(text) {
-            const speech = new SpeechSynthesisUtterance(text);
-            speech.lang = 'en-US';
-            window.speechSynthesis.speak(speech);
-        }
+    // Function to handle text-to-speech
+    function speakText(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';  // Set language to English
+        speechSynthesis.speak(utterance);
+    }
 
-        // Function to send message to Sendbird and get response
-        async function sendMessageToBot(userMessage) {
-            const messageBox = document.getElementById('chat-box');
+    // Function to send message to the bot and receive a response
+    async function sendMessageToBot() {
+        const messageBox = document.getElementById('chat-box');
+        const userMessage = document.getElementById('user-input').value;
 
-            // Display user message in the chat box
-            const userMessageDiv = document.createElement('div');
-            userMessageDiv.className = 'message user-message';
-            userMessageDiv.textContent = userMessage;
-            messageBox.appendChild(userMessageDiv);
-            messageBox.scrollTop = messageBox.scrollHeight; // Scroll to bottom
+        if (!userMessage.trim()) return; // Don't send empty messages
 
-            // Clear user input field
-            document.getElementById('user-input').value = '';
-            document.getElementById('send-button').disabled = true;
+        // Display user message in the chat box
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = 'message user-message';
+        userMessageDiv.textContent = userMessage;
+        messageBox.appendChild(userMessageDiv);
+        messageBox.scrollTop = messageBox.scrollHeight; // Scroll to bottom
 
-            // Make the API call to Sendbird to get the bot's response
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Api-Token': '06ab48d570b66099a56975c0de1ad7762ea904b6', // Your Master API Token
-                    },
-                    body: JSON.stringify({
-                        message: userMessage
-                    })
-                });
+        // Clear user input field
+        document.getElementById('user-input').value = '';
+        document.getElementById('send-button').disabled = true;
 
-                const data = await response.json();
+        // Make the API call to Sendbird to get the bot's response
+        try {
+            const response = await fetch(API_URL + '/v3/bots/' + BOT_ID + '/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Api-Token': MASTER_API_TOKEN, // Use Secondary API Token if needed
+                },
+                body: JSON.stringify({
+                    message: userMessage
+                })
+            });
+
+            const data = await response.json();
+
+            // Log the response to see the structure and any error messages
+            console.log('API Response:', data);
+
+            if (response.ok && data && data.data && data.data.message) {
                 const botReply = data.data.message; // Get the message from the response
 
                 // Display bot message
@@ -135,34 +138,35 @@
 
                 // Convert bot reply to speech
                 speakText(botReply);
-
-            } catch (error) {
-                console.error('Error:', error);
+            } else {
+                // Handle unsuccessful API response with detailed error logging
+                const errorMessage = data.error || 'There was an issue processing the response.';
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'message bot-message';
-                errorDiv.textContent = 'Sorry, I could not respond at the moment.';
+                errorDiv.textContent = `Error: ${errorMessage}`;
                 messageBox.appendChild(errorDiv);
                 messageBox.scrollTop = messageBox.scrollHeight;
-            } finally {
-                document.getElementById('send-button').disabled = false; // Re-enable the button
             }
+
+        } catch (error) {
+            console.error('Error:', error);
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message bot-message';
+            errorDiv.textContent = 'Sorry, I could not respond at the moment.';
+            messageBox.appendChild(errorDiv);
+            messageBox.scrollTop = messageBox.scrollHeight;
+        } finally {
+            document.getElementById('send-button').disabled = false; // Re-enable the button
         }
+    }
 
-        // Handle send button click
-        document.getElementById('send-button').addEventListener('click', function() {
-            const userMessage = document.getElementById('user-input').value.trim();
-            if (userMessage) {
-                sendMessageToBot(userMessage);
-            }
-        });
+    // Optional: Enable sending by pressing Enter
+    document.getElementById('user-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            sendMessageToBot();
+        }
+    });
+</script>
 
-        // Handle 'Enter' key for sending message
-        document.getElementById('user-input').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                document.getElementById('send-button').click();
-            }
-        });
-
-    </script>
 </body>
 </html>
