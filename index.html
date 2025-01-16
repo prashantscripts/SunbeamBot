@@ -75,6 +75,7 @@
 <script>
     // Replace with your actual Master API Token
     const MASTER_API_TOKEN = 'Bearer 06ab48d570b66099a56975c0de1ad7762ea904b6';
+    let currentUserId = null; // Track the created user ID
     
     // Create a user when the page loads
     async function createUser() {
@@ -91,9 +92,10 @@
         });
 
         const data = await response.json();
-        console.log('User created:', data);
         if (response.ok) {
-            sendMessage('bot_user_1');
+            console.log('User created:', data);
+            currentUserId = data.user_id;  // Store the user ID of the created user
+            sendMessage(currentUserId);  // Now we can send messages
         } else {
             console.log('Error creating user:', data);
         }
@@ -104,7 +106,7 @@
         const inputElement = document.getElementById('inputMessage');
         const messageText = inputElement.value;
 
-        if (!messageText) return; // Prevent empty messages
+        if (!messageText || !userId) return; // Prevent empty messages and ensure userId is valid
 
         const messagesContainer = document.getElementById('messages');
 
@@ -129,15 +131,15 @@
             },
             body: JSON.stringify({
                 message: messageText,
-                sender_id: 'bot_user_1'
+                sender_id: userId  // Use the correct user ID
             })
         });
 
         const data = await response.json();
-        console.log('Message sent:', data);
-        
-        // Display bot's response in the chat
         if (response.ok) {
+            console.log('Message sent:', data);
+
+            // Display bot's response in the chat
             const botMessageElement = document.createElement('div');
             botMessageElement.classList.add('message', 'bot');
             botMessageElement.textContent = 'This is a bot response to: ' + messageText;
