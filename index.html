@@ -3,20 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot on Canvas</title>
+    <title>Chatbot with Sendbird</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f5f5f5;
             padding: 20px;
         }
-        #chat-canvas {
+        #chat-box {
             background-color: white;
             width: 100%;
             max-width: 600px;
             height: 400px;
             margin: 0 auto;
             border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow-y: scroll;
+            padding: 10px;
+        }
+        .user-message {
+            text-align: right;
+            background-color: #e1f5fe;
+            padding: 5px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+        .chatbot-message {
+            text-align: left;
+            background-color: #388e3c;
+            color: white;
+            padding: 5px;
+            margin: 5px;
             border-radius: 5px;
         }
         #chat-input {
@@ -38,8 +55,7 @@
 </head>
 <body>
     <h1>Chatbot</h1>
-    <canvas id="chat-canvas"></canvas>
-    <br/>
+    <div id="chat-box"></div>
     <input type="text" id="chat-input" placeholder="Type your message..." />
     <button id="send-btn">Send</button>
 
@@ -48,9 +64,9 @@
         // Sendbird Application ID
         const APP_ID = 'BF738831-5030-460B-9891-AC5446AAE79C'; // Your Application ID
         const sb = new SendBird({ appId: APP_ID });
-
-        // Create a channel and connect the user
         let channel;
+
+        // Connect user to Sendbird
         sb.connect('user1', function(user, error) {
             if (error) {
                 console.error('Connection failed:', error);
@@ -96,22 +112,14 @@
             }
         }
 
-        // Display message on Canvas
-        let yPosition = 30;  // Starting y-position for text drawing
+        // Display message in the chat box
         function displayMessage(message, sender) {
-            const canvas = document.getElementById('chat-canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear the canvas
-
-            ctx.font = '16px Arial';
-            ctx.fillStyle = sender === 'user' ? '#388e3c' : '#0000FF';  // Green for user, blue for bot
-            ctx.textAlign = 'left';
-            ctx.fillText(message, 10, yPosition);
-
-            yPosition += 30;  // Adjust y-position for the next message
-            if (yPosition > canvas.height - 30) {
-                yPosition = 30;  // Reset to top if canvas is full
-            }
+            const chatBox = document.getElementById('chat-box');
+            const newMessage = document.createElement('div');
+            newMessage.className = sender === 'user' ? 'user-message' : 'chatbot-message';
+            newMessage.innerText = message;
+            chatBox.appendChild(newMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;  // Scroll to bottom
         }
 
         // Function to simulate a bot response
@@ -127,11 +135,6 @@
             speech.lang = "en-US";  // Set language
             window.speechSynthesis.speak(speech);
         }
-
-        // Resize the canvas to fit the window
-        const canvas = document.getElementById('chat-canvas');
-        canvas.width = 600;
-        canvas.height = 400;
     </script>
 </body>
 </html>
