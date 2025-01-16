@@ -79,8 +79,9 @@
 
 <script>
     // Sendbird API URL and API Tokens
-    const API_URL = 'https://api.sendbird.com/v3/users/{user_id}/messages'; // Ensure to replace {user_id} dynamically
     const MASTER_API_TOKEN = '06ab48d570b66099a56975c0de1ad7762ea904b6'; // Use your Master API Token
+    const user_id = 'bot_user_id';  // Replace with actual user/bot ID
+    const API_URL = `https://api.sendbird.com/v3/users/${user_id}/messages`;
 
     // Function to handle text-to-speech
     function speakText(text) {
@@ -116,8 +117,7 @@
                     'Authorization': 'Bearer ' + MASTER_API_TOKEN,  // Use Bearer token for authentication
                 },
                 body: JSON.stringify({
-                    message: userMessage,
-                    user_id: 'bot_user_id'  // Replace with actual bot user ID if applicable
+                    message: userMessage
                 })
             });
 
