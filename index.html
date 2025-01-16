@@ -68,7 +68,7 @@
 </div>
 
 <script>
-    const MASTER_API_TOKEN = 'Bearer 06ab48d570b66099a56975c0de1ad7762ea904b6';
+    const MASTER_API_TOKEN = 'Bearer 06ab48d570b66099a56975c0de1ad7762ea904b6'; // Ensure this token is correctly placed
     let currentUserId = null;
 
     // Create a user when the page loads
@@ -78,7 +78,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': MASTER_API_TOKEN
+                    'Authorization': MASTER_API_TOKEN // Make sure the header is correctly set
                 },
                 body: JSON.stringify({
                     user_id: 'bot_user_1',
@@ -122,7 +122,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': MASTER_API_TOKEN
+                    'Authorization': MASTER_API_TOKEN // Correctly send the API token in the header
                 },
                 body: JSON.stringify({
                     message: messageText,
