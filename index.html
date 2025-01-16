@@ -78,15 +78,14 @@
 </div>
 
 <script>
-    // Your Sendbird API URL and Secondary API Token
-    const API_URL = 'https://api-BF738831-5030-460B-9891-AC5446AAE79C.sendbird.com'; // Replace with the correct API URL
-    const BOT_ID = 'onboarding_bot';  // The bot ID you are using
-    const MASTER_API_TOKEN = '06ab48d570b66099a56975c0de1ad7762ea904b6';  // Replace with your Secondary API Token if needed
+    // Sendbird API URL and API Tokens
+    const API_URL = 'https://api-BF738831-5030-460B-9891-AC5446AAE79C.sendbird.com/v3/bots/onboarding_bot/message'; // Ensure this is correct
+    const MASTER_API_TOKEN = '06ab48d570b66099a56975c0de1ad7762ea904b6'; // Use your Master API Token
 
     // Function to handle text-to-speech
     function speakText(text) {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';  // Set language to English
+        utterance.lang = 'en-US';
         speechSynthesis.speak(utterance);
     }
 
@@ -95,26 +94,26 @@
         const messageBox = document.getElementById('chat-box');
         const userMessage = document.getElementById('user-input').value;
 
-        if (!userMessage.trim()) return; // Don't send empty messages
+        if (!userMessage.trim()) return;
 
-        // Display user message in the chat box
+        // Display user message
         const userMessageDiv = document.createElement('div');
         userMessageDiv.className = 'message user-message';
         userMessageDiv.textContent = userMessage;
         messageBox.appendChild(userMessageDiv);
-        messageBox.scrollTop = messageBox.scrollHeight; // Scroll to bottom
+        messageBox.scrollTop = messageBox.scrollHeight;
 
-        // Clear user input field
+        // Clear input field
         document.getElementById('user-input').value = '';
         document.getElementById('send-button').disabled = true;
 
-        // Make the API call to Sendbird to get the bot's response
+        // Make API call to Sendbird
         try {
-            const response = await fetch(API_URL + '/v3/bots/' + BOT_ID + '/message', {
+            const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Api-Token': MASTER_API_TOKEN, // Use Secondary API Token if needed
+                    'Api-Token': MASTER_API_TOKEN,  // Use the Master API Token for authentication
                 },
                 body: JSON.stringify({
                     message: userMessage
@@ -123,24 +122,24 @@
 
             const data = await response.json();
 
-            // Log the response to see the structure and any error messages
+            // Log the complete response for debugging
             console.log('API Response:', data);
 
             if (response.ok && data && data.data && data.data.message) {
-                const botReply = data.data.message; // Get the message from the response
+                const botReply = data.data.message;
 
-                // Display bot message
+                // Display bot response
                 const botMessageDiv = document.createElement('div');
                 botMessageDiv.className = 'message bot-message';
                 botMessageDiv.textContent = botReply;
                 messageBox.appendChild(botMessageDiv);
                 messageBox.scrollTop = messageBox.scrollHeight;
 
-                // Convert bot reply to speech
+                // Speak the response
                 speakText(botReply);
             } else {
-                // Handle unsuccessful API response with detailed error logging
-                const errorMessage = data.error || 'There was an issue processing the response.';
+                // If no message is returned or an error occurs, display the error details
+                const errorMessage = data.error ? data.error.message : 'Unknown error';
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'message bot-message';
                 errorDiv.textContent = `Error: ${errorMessage}`;
@@ -149,18 +148,18 @@
             }
 
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Fetch Error:', error);
             const errorDiv = document.createElement('div');
             errorDiv.className = 'message bot-message';
             errorDiv.textContent = 'Sorry, I could not respond at the moment.';
             messageBox.appendChild(errorDiv);
             messageBox.scrollTop = messageBox.scrollHeight;
         } finally {
-            document.getElementById('send-button').disabled = false; // Re-enable the button
+            document.getElementById('send-button').disabled = false; // Re-enable button
         }
     }
 
-    // Optional: Enable sending by pressing Enter
+    // Enable sending by pressing Enter
     document.getElementById('user-input').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             sendMessageToBot();
