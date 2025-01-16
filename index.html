@@ -9,44 +9,23 @@
     <div>
         <h2>Sendbird Chat</h2>
         <div id="chatContainer"></div>
-        <input type="text" id="messageInput" placeholder="Type your message" />
+        <input type="text" id="messageInput" placeholder="Type your message here..." />
         <button onclick="sendMessage()">Send</button>
     </div>
+
     <script>
         const API_BASE_URL = 'https://api-BF738831-5030-460B-9891-AC5446AAE79C.sendbird.com/v3';
         const MASTER_API_TOKEN = 'Bearer 06ab48d570b66099a56975c0de1ad7762ea904b6';
-        const USER_ID = 'test_user';
-
-        // Create a new user
-        async function createUser() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/users`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': MASTER_API_TOKEN
-                    },
-                    body: JSON.stringify({
-                        user_id: USER_ID,
-                        nickname: 'Test User'
-                    })
-                });
-
-                const result = await response.json();
-                if (response.ok) {
-                    console.log('User created:', result);
-                } else {
-                    console.error('Error creating user:', result);
-                }
-            } catch (error) {
-                console.error('Error creating user:', error);
-            }
-        }
+        const USER_ID = 'sbsg'; // User ID you created
+        const USER_ACCESS_TOKEN = 'ba8da239173d8a8375c2cb3a0ca4a477d86937c0'; // Access token for the user
 
         // Send a message
         async function sendMessage() {
-            const message = document.getElementById('messageInput').value;
-            if (!message) return;
+            const message = document.getElementById('messageInput').value.trim();
+            if (!message) {
+                alert('Please enter a message.');
+                return;
+            }
 
             try {
                 const response = await fetch(`${API_BASE_URL}/users/${USER_ID}/messages`, {
@@ -56,24 +35,35 @@
                         'Authorization': MASTER_API_TOKEN
                     },
                     body: JSON.stringify({
+                        message_type: 'MESG',
+                        user_id: USER_ID,
                         message: message,
-                        sender_id: USER_ID
+                        access_token: USER_ACCESS_TOKEN
                     })
                 });
 
                 const result = await response.json();
+
                 if (response.ok) {
                     console.log('Message sent:', result);
+                    const chatContainer = document.getElementById('chatContainer');
+                    const messageElement = document.createElement('p');
+                    messageElement.textContent = `You: ${message}`;
+                    chatContainer.appendChild(messageElement);
+
+                    // Display the response from the bot
+                    const botMessageElement = document.createElement('p');
+                    botMessageElement.textContent = `Bot: ${result.message}`;
+                    chatContainer.appendChild(botMessageElement);
                 } else {
                     console.error('Error sending message:', result);
+                    alert(`Error: ${result.message}`);
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
+                alert('An error occurred. Check the console for details.');
             }
         }
-
-        // Initialize the application
-        createUser();
     </script>
 </body>
 </html>
