@@ -122,9 +122,10 @@
 
             const data = await response.json();
 
-            // Log the complete response for debugging
-            console.log('API Response:', data);
+            // Log the full API response for debugging
+            console.log('Full API Response:', data);
 
+            // Check if the response is OK and has the expected structure
             if (response.ok && data && data.data && data.data.message) {
                 const botReply = data.data.message;
 
