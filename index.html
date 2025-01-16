@@ -79,7 +79,7 @@
 
 <script>
     // Sendbird API URL and API Tokens
-    const API_URL = 'https://api-BF738831-5030-460B-9891-AC5446AAE79C.sendbird.com/v3/bots/onboarding_bot/message'; // Ensure this is correct
+    const API_URL = 'https://api.sendbird.com/v3/users/{user_id}/messages'; // Ensure to replace {user_id} dynamically
     const MASTER_API_TOKEN = '06ab48d570b66099a56975c0de1ad7762ea904b6'; // Use your Master API Token
 
     // Function to handle text-to-speech
@@ -113,41 +113,49 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Api-Token': MASTER_API_TOKEN,  // Use the Master API Token for authentication
+                    'Authorization': 'Bearer ' + MASTER_API_TOKEN,  // Use Bearer token for authentication
                 },
                 body: JSON.stringify({
-                    message: userMessage
+                    message: userMessage,
+                    user_id: 'bot_user_id'  // Replace with actual bot user ID if applicable
                 })
             });
 
             const data = await response.json();
 
-            // Log the full API response for debugging
+            // Log the entire response object for debugging
             console.log('Full API Response:', data);
 
             // Check if the response is OK and has the expected structure
-            if (response.ok && data && data.data && data.data.message) {
-                const botReply = data.data.message;
+            if (response.ok && data) {
+                console.log('Response Data:', data); // Log detailed data
+                if (data.data && data.data.message) {
+                    const botReply = data.data.message;
 
-                // Display bot response
-                const botMessageDiv = document.createElement('div');
-                botMessageDiv.className = 'message bot-message';
-                botMessageDiv.textContent = botReply;
-                messageBox.appendChild(botMessageDiv);
-                messageBox.scrollTop = messageBox.scrollHeight;
+                    // Display bot response
+                    const botMessageDiv = document.createElement('div');
+                    botMessageDiv.className = 'message bot-message';
+                    botMessageDiv.textContent = botReply;
+                    messageBox.appendChild(botMessageDiv);
+                    messageBox.scrollTop = messageBox.scrollHeight;
 
-                // Speak the response
-                speakText(botReply);
+                    // Speak the response
+                    speakText(botReply);
+                } else {
+                    const errorMessage = data.error ? data.error.message : 'Unknown error';
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'message bot-message';
+                    errorDiv.textContent = `Error: ${errorMessage}`;
+                    messageBox.appendChild(errorDiv);
+                    messageBox.scrollTop = messageBox.scrollHeight;
+                }
             } else {
-                // If no message is returned or an error occurs, display the error details
-                const errorMessage = data.error ? data.error.message : 'Unknown error';
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'message bot-message';
-                errorDiv.textContent = `Error: ${errorMessage}`;
+                errorDiv.textContent = 'Error: Something went wrong!';
                 messageBox.appendChild(errorDiv);
                 messageBox.scrollTop = messageBox.scrollHeight;
             }
-
         } catch (error) {
             console.error('Fetch Error:', error);
             const errorDiv = document.createElement('div');
