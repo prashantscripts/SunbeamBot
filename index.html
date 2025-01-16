@@ -3,142 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot with Sendbird</title>
+    <title>Custom Chatbot with Audio</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
             background-color: #f5f5f5;
-            padding: 20px;
         }
-        #chat-box {
-            background-color: white;
+        .chat-container {
             width: 100%;
-            max-width: 600px;
-            height: 400px;
-            margin: 0 auto;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            overflow-y: scroll;
-            padding: 10px;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
         }
-        .user-message {
-            text-align: right;
-            background-color: #e1f5fe;
-            padding: 5px;
-            margin: 5px;
-            border-radius: 5px;
+        .chat-title {
+            text-align: center;
+            font-size: 24px;
+            color: #388e3c;
+            margin-bottom: 20px;
         }
-        .chatbot-message {
-            text-align: left;
-            background-color: #388e3c;
-            color: white;
-            padding: 5px;
-            margin: 5px;
-            border-radius: 5px;
-        }
-        #chat-input {
-            width: 80%;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            margin-right: 10px;
-        }
-        #send-btn {
-            padding: 10px;
-            background-color: #388e3c;
-            color: white;
+        iframe {
+            width: 100%;
+            height: 600px;
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>Chatbot</h1>
-    <div id="chat-box"></div>
-    <input type="text" id="chat-input" placeholder="Type your message..." />
-    <button id="send-btn">Send</button>
 
-    <script src="https://cdn.sendbird.com/sdk/3.0.148/sendbird.min.js"></script>
+    <div class="chat-container">
+        <h2 class="chat-title">Welcome to Our Chatbot</h2>
+        <!-- Embed Sendbird Chatbot via iframe -->
+        <iframe src="https://aichatbot.sendbird.com/playground/index.html?app_id=BF738831-5030-460B-9891-AC5446AAE79C&bot_id=onboarding_bot&region=ap-8" allow="microphone; autoplay" id="chatbot-iframe"></iframe>
+    </div>
+
     <script>
-        // Sendbird Application ID
-        const APP_ID = 'BF738831-5030-460B-9891-AC5446AAE79C'; // Your Application ID
-        const sb = new SendBird({ appId: APP_ID });
-        let channel;
-
-        // Connect user to Sendbird
-        sb.connect('user1', function(user, error) {
-            if (error) {
-                console.error('Connection failed:', error);
-                return;
-            }
-            console.log(`${user.nickname} connected`);
-            createChannel();
-        });
-
-        // Create a channel for chatting
-        function createChannel() {
-            sb.GroupChannel.createChannel([ 'user1' ], function(channelCreated, error) {
-                if (error) {
-                    console.error('Channel creation failed:', error);
-                    return;
-                }
-                channel = channelCreated;
-                console.log('Channel created:', channel.url);
-            });
-        }
-
-        // Sending a message
-        function sendMessage() {
-            const message = document.getElementById('chat-input').value;
-            if (message.trim() !== '') {
-                channel.sendUserMessage(message, function(msg, error) {
-                    if (error) {
-                        console.error('Message send failed:', error);
-                    } else {
-                        displayMessage(msg.message, 'user');
-                        speakText(msg.message);  // Text-to-speech for user message
-                        generateBotResponse(msg.message);  // Generate a bot response based on the user message
-                    }
-                });
-                document.getElementById('chat-input').value = ''; // Clear input field
-            }
-        }
-
-        // Display message in the chat box
-        function displayMessage(message, sender) {
-            const chatBox = document.getElementById('chat-box');
-            const newMessage = document.createElement('div');
-            newMessage.className = sender === 'user' ? 'user-message' : 'chatbot-message';
-            newMessage.innerText = message;
-            chatBox.appendChild(newMessage);
-            chatBox.scrollTop = chatBox.scrollHeight;  // Scroll to bottom
-        }
-
-        // Function to generate a bot response based on the user's message
-        function generateBotResponse(userMessage) {
-            // Simulating a simple bot response
-            const botReply = `You said: "${userMessage}". I'm just a bot, but I'll keep chatting!`;
-            displayMessage(botReply, 'chatbot');
-            speakText(botReply);  // Text-to-speech for bot response
-        }
-
-        // Function for Text-to-Speech
+        // Function to convert text to speech using the Web Speech API
         function speakText(text) {
             const speech = new SpeechSynthesisUtterance(text);
-            speech.lang = "en-US";  // Set language
+            speech.lang = "en-US";  // Set language to English
             window.speechSynthesis.speak(speech);
         }
 
-        // Event listener for Send button click
-        document.getElementById('send-btn').addEventListener('click', sendMessage);
-
-        // Event listener for Enter key press
-        document.getElementById('chat-input').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
+        // Add an event listener to the chatbot iframe to listen for messages
+        document.getElementById("chatbot-iframe").addEventListener("load", function() {
+            // Example: Triggering audio for bot response once the iframe loads
+            // You would need to integrate Sendbird's bot response here
+            speakText("Welcome to the chatbot! How can I help you today?");
         });
-    </script>
-</body>
-</html>
+
+        // Example of speaking a response after a user sends a message
+        // Simulate bot response after a message is sent.
+        function simulateBotResponse(userMessage) {
+  
