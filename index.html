@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Chatbot with Audio</title>
+    <title>Custom Audio Chatbot Interface</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,37 +26,143 @@
             color: #388e3c;
             margin-bottom: 20px;
         }
-        iframe {
+        .chat-box {
+            border: 1px solid #ddd;
+            padding: 10px;
+            min-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            height: 400px;
+        }
+        .user-input {
             width: 100%;
-            height: 600px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .send-button {
+            padding: 10px 20px;
+            background-color: #388e3c;
+            color: white;
             border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .send-button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        .message {
+            margin: 10px 0;
+        }
+        .bot-message {
+            text-align: left;
+            background-color: #e0f7fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .user-message {
+            text-align: right;
+            background-color: #f1f8e9;
+            padding: 10px;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
 
     <div class="chat-container">
-        <h2 class="chat-title">Welcome to Our Chatbot</h2>
-        <!-- Embed Sendbird Chatbot via iframe -->
-        <iframe src="https://aichatbot.sendbird.com/playground/index.html?app_id=BF738831-5030-460B-9891-AC5446AAE79C&bot_id=onboarding_bot&region=ap-8" allow="microphone; autoplay" id="chatbot-iframe"></iframe>
+        <h2 class="chat-title">Welcome to the Chatbot</h2>
+
+        <div id="chat-box" class="chat-box"></div>
+
+        <input id="user-input" class="user-input" type="text" placeholder="Type your message..." />
+        <button id="send-button" class="send-button">Send</button>
     </div>
 
     <script>
-        // Function to convert text to speech using the Web Speech API
+        // Set your Sendbird app details
+        const APP_ID = 'BF738831-5030-460B-9891-AC5446AAE79C'; // Your application ID
+        const BOT_ID = 'onboarding_bot'; // Your bot ID
+        const REGION = 'ap-8'; // Your region
+        const API_URL = `https://api-${REGION}.sendbird.com/v3/bots/${BOT_ID}/messages`;
+
+        // Text-to-Speech function
         function speakText(text) {
             const speech = new SpeechSynthesisUtterance(text);
-            speech.lang = "en-US";  // Set language to English
+            speech.lang = 'en-US';
             window.speechSynthesis.speak(speech);
         }
 
-        // Add an event listener to the chatbot iframe to listen for messages
-        document.getElementById("chatbot-iframe").addEventListener("load", function() {
-            // Example: Triggering audio for bot response once the iframe loads
-            // You would need to integrate Sendbird's bot response here
-            speakText("Welcome to the chatbot! How can I help you today?");
+        // Function to send message to Sendbird and get response
+        async function sendMessageToBot(userMessage) {
+            const messageBox = document.getElementById('chat-box');
+
+            // Display user message in the chat box
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user-message';
+            userMessageDiv.textContent = userMessage;
+            messageBox.appendChild(userMessageDiv);
+            messageBox.scrollTop = messageBox.scrollHeight; // Scroll to bottom
+
+            // Clear user input field
+            document.getElementById('user-input').value = '';
+            document.getElementById('send-button').disabled = true;
+
+            // Make the API call to Sendbird to get the bot's response
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Api-Token': '06ab48d570b66099a56975c0de1ad7762ea904b6', // Your Master API Token
+                    },
+                    body: JSON.stringify({
+                        message: userMessage
+                    })
+                });
+
+                const data = await response.json();
+                const botReply = data.data.message; // Get the message from the response
+
+                // Display bot message
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'message bot-message';
+                botMessageDiv.textContent = botReply;
+                messageBox.appendChild(botMessageDiv);
+                messageBox.scrollTop = messageBox.scrollHeight;
+
+                // Convert bot reply to speech
+                speakText(botReply);
+
+            } catch (error) {
+                console.error('Error:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message bot-message';
+                errorDiv.textContent = 'Sorry, I could not respond at the moment.';
+                messageBox.appendChild(errorDiv);
+                messageBox.scrollTop = messageBox.scrollHeight;
+            } finally {
+                document.getElementById('send-button').disabled = false; // Re-enable the button
+            }
+        }
+
+        // Handle send button click
+        document.getElementById('send-button').addEventListener('click', function() {
+            const userMessage = document.getElementById('user-input').value.trim();
+            if (userMessage) {
+                sendMessageToBot(userMessage);
+            }
         });
 
-        // Example of speaking a response after a user sends a message
-        // Simulate bot response after a message is sent.
-        function simulateBotResponse(userMessage) {
-  
+        // Handle 'Enter' key for sending message
+        document.getElementById('user-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                document.getElementById('send-button').click();
+            }
+        });
+
+    </script>
+</body>
+</html>
