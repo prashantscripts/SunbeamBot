@@ -3,40 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot</title>
+    <title>Chatbot on Canvas</title>
     <style>
-        /* Basic styling */
         body {
             font-family: Arial, sans-serif;
             background-color: #f5f5f5;
             padding: 20px;
         }
-        #chat-box {
+        #chat-canvas {
             background-color: white;
             width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 10px;
+            max-width: 600px;
             height: 400px;
-            overflow-y: scroll;
+            margin: 0 auto;
             border: 1px solid #ccc;
             border-radius: 5px;
-        }
-        .user {
-            text-align: right;
-            color: #333;
-            background-color: #e1f5fe;
-            border-radius: 5px;
-            padding: 5px;
-            margin: 5px;
-        }
-        .chatbot {
-            text-align: left;
-            color: #fff;
-            background-color: #388e3c;
-            border-radius: 5px;
-            padding: 5px;
-            margin: 5px;
         }
         #chat-input {
             width: 80%;
@@ -57,7 +38,8 @@
 </head>
 <body>
     <h1>Chatbot</h1>
-    <div id="chat-box"></div>
+    <canvas id="chat-canvas"></canvas>
+    <br/>
     <input type="text" id="chat-input" placeholder="Type your message..." />
     <button id="send-btn">Send</button>
 
@@ -114,14 +96,22 @@
             }
         }
 
-        // Display message in the chat box
+        // Display message on Canvas
+        let yPosition = 30;  // Starting y-position for text drawing
         function displayMessage(message, sender) {
-            const chatBox = document.getElementById('chat-box');
-            const newMessage = document.createElement('div');
-            newMessage.className = sender;
-            newMessage.innerText = message;
-            chatBox.appendChild(newMessage);
-            chatBox.scrollTop = chatBox.scrollHeight;  // Scroll to bottom
+            const canvas = document.getElementById('chat-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear the canvas
+
+            ctx.font = '16px Arial';
+            ctx.fillStyle = sender === 'user' ? '#388e3c' : '#0000FF';  // Green for user, blue for bot
+            ctx.textAlign = 'left';
+            ctx.fillText(message, 10, yPosition);
+
+            yPosition += 30;  // Adjust y-position for the next message
+            if (yPosition > canvas.height - 30) {
+                yPosition = 30;  // Reset to top if canvas is full
+            }
         }
 
         // Function to simulate a bot response
@@ -137,6 +127,11 @@
             speech.lang = "en-US";  // Set language
             window.speechSynthesis.speak(speech);
         }
+
+        // Resize the canvas to fit the window
+        const canvas = document.getElementById('chat-canvas');
+        canvas.width = 600;
+        canvas.height = 400;
     </script>
 </body>
 </html>
