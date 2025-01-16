@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sendbird Chat Example</title>
     <style>
-        /* Basic styling for the chat interface */
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
@@ -59,10 +58,6 @@
             border-radius: 5px;
             border: 1px solid #ccc;
         }
-
-        button {
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -73,31 +68,35 @@
 </div>
 
 <script>
-    // Replace with your actual Master API Token
     const MASTER_API_TOKEN = 'Bearer 06ab48d570b66099a56975c0de1ad7762ea904b6';
-    let currentUserId = null; // Track the created user ID
-    
+    let currentUserId = null;
+
     // Create a user when the page loads
     async function createUser() {
-        const response = await fetch('https://api.sendbird.com/v3/users', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': MASTER_API_TOKEN
-            },
-            body: JSON.stringify({
-                user_id: 'bot_user_1',  // Unique ID for the bot
-                nickname: 'Test Bot'
-            })
-        });
+        try {
+            const response = await fetch('https://api.sendbird.com/v3/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': MASTER_API_TOKEN
+                },
+                body: JSON.stringify({
+                    user_id: 'bot_user_1',
+                    nickname: 'Test Bot'
+                })
+            });
 
-        const data = await response.json();
-        if (response.ok) {
-            console.log('User created:', data);
-            currentUserId = data.user_id;  // Store the user ID of the created user
-            sendMessage(currentUserId);  // Now we can send messages
-        } else {
-            console.log('Error creating user:', data);
+            const data = await response.json();
+
+            if (response.ok) {
+                console.log('User created:', data);
+                currentUserId = data.user_id; // Store the user ID
+                sendMessage(currentUserId); // Send message after user is created
+            } else {
+                console.log('Error creating user:', data);
+            }
+        } catch (error) {
+            console.error('Error creating user:', error);
         }
     }
 
@@ -106,11 +105,9 @@
         const inputElement = document.getElementById('inputMessage');
         const messageText = inputElement.value;
 
-        if (!messageText || !userId) return; // Prevent empty messages and ensure userId is valid
+        if (!messageText || !userId) return;
 
         const messagesContainer = document.getElementById('messages');
-
-        // Display the user's message in the chat
         const userMessageElement = document.createElement('div');
         userMessageElement.classList.add('message', 'user');
         userMessageElement.textContent = messageText;
@@ -118,41 +115,40 @@
 
         // Scroll to the latest message
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-        // Clear the input field
         inputElement.value = '';
 
-        // Send the user's message to the Sendbird API
-        const response = await fetch(`https://api.sendbird.com/v3/users/${userId}/messages`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': MASTER_API_TOKEN
-            },
-            body: JSON.stringify({
-                message: messageText,
-                sender_id: userId  // Use the correct user ID
-            })
-        });
+        try {
+            const response = await fetch(`https://api.sendbird.com/v3/users/${userId}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': MASTER_API_TOKEN
+                },
+                body: JSON.stringify({
+                    message: messageText,
+                    sender_id: userId
+                })
+            });
 
-        const data = await response.json();
-        if (response.ok) {
-            console.log('Message sent:', data);
+            const data = await response.json();
 
-            // Display bot's response in the chat
-            const botMessageElement = document.createElement('div');
-            botMessageElement.classList.add('message', 'bot');
-            botMessageElement.textContent = 'This is a bot response to: ' + messageText;
-            messagesContainer.appendChild(botMessageElement);
+            if (response.ok) {
+                console.log('Message sent:', data);
 
-            // Scroll to the latest message
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        } else {
-            console.log('Error sending message:', data);
+                const botMessageElement = document.createElement('div');
+                botMessageElement.classList.add('message', 'bot');
+                botMessageElement.textContent = 'This is a bot response to: ' + messageText;
+                messagesContainer.appendChild(botMessageElement);
+
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } else {
+                console.log('Error sending message:', data);
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
         }
     }
 
-    // Start by creating the user when the page loads
     window.onload = createUser;
 </script>
 
