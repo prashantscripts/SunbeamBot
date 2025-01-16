@@ -98,7 +98,7 @@
                     } else {
                         displayMessage(msg.message, 'user');
                         speakText(msg.message);  // Text-to-speech for user message
-                        simulateBotResponse();  // Simulate a bot response
+                        generateBotResponse(msg.message);  // Generate a bot response based on the user message
                     }
                 });
                 document.getElementById('chat-input').value = ''; // Clear input field
@@ -115,9 +115,10 @@
             chatBox.scrollTop = chatBox.scrollHeight;  // Scroll to bottom
         }
 
-        // Function to simulate a bot response
-        function simulateBotResponse() {
-            const botReply = "This is a dummy response.";  // You can replace this with AI or predefined responses
+        // Function to generate a bot response based on the user's message
+        function generateBotResponse(userMessage) {
+            // Simulating a simple bot response
+            const botReply = `You said: "${userMessage}". I'm just a bot, but I'll keep chatting!`;
             displayMessage(botReply, 'chatbot');
             speakText(botReply);  // Text-to-speech for bot response
         }
