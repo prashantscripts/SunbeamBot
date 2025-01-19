@@ -41,38 +41,58 @@
   </div>
 
   <script>
-    // Text-to-Speech Function
-    const speakText = (text) => {
-      const msg = new SpeechSynthesisUtterance(text);
-      msg.lang = 'en-US';
-      window.speechSynthesis.speak(msg);
-    };
-
-    // Speech-to-Text Functionality
-    let recognition;
-    const speakBtn = document.getElementById('speakBtn');
-    const stopBtn = document.getElementById('stopBtn');
-
-    try {
+    // Check for browser compatibility
+    if ('speechSynthesis' in window && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
+      const recognition = new SpeechRecognition();
       recognition.lang = 'en-US';
-      recognition.interimResults = false;
 
-      // Start Listening
+      // Buttons
+      const speakBtn = document.getElementById('speakBtn');
+      const stopBtn = document.getElementById('stopBtn');
+
+      // Start Speech Recognition
       speakBtn.addEventListener('click', () => {
         recognition.start();
         speakBtn.disabled = true;
         stopBtn.disabled = false;
       });
 
-      // Stop Listening
+      // Stop Speech Recognition
       stopBtn.addEventListener('click', () => {
         recognition.stop();
         speakBtn.disabled = false;
         stopBtn.disabled = true;
       });
 
-      // Capture Speech Result
+      // Handle Speech Input
       recognition.onresult = (event) => {
-        const
+        const userInput = event.results[0][0].transcript;
+        alert(`You said: ${userInput}`);
+        speakText(userInput);
+        speakBtn.disabled = false;
+        stopBtn.disabled = true;
+      };
+
+      // Handle Errors
+      recognition.onerror = () => {
+        alert('Error recognizing speech. Please try again.');
+        speakBtn.disabled = false;
+        stopBtn.disabled = true;
+      };
+
+    } else {
+      alert('Your browser does not support Speech Recognition or Speech Synthesis.');
+      document.getElementById('speakBtn').disabled = true;
+      document.getElementById('stopBtn').disabled = true;
+    }
+
+    // Text-to-Speech Function
+    const speakText = (text) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      window.speechSynthesis.speak(utterance);
+    };
+  </script>
+</body>
+</html>
