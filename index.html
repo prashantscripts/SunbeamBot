@@ -1,69 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sendbird Chat Example</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Chatbot</title>
 </head>
 <body>
-    <div>
-        <h2>Sendbird Chat</h2>
-        <div id="chatContainer"></div>
-        <input type="text" id="messageInput" placeholder="Type your message here..." />
-        <button onclick="sendMessage()">Send</button>
-    </div>
+  <div>
+    <h1>Voice-Enabled Chatbot</h1>
+    <textarea id="chatBox" rows="10" cols="50" readonly></textarea>
+    <br />
+    <button id="speakBtn">Speak</button>
+  </div>
 
-    <script>
-        const API_BASE_URL = 'https://api-BF738831-5030-460B-9891-AC5446AAE79C.sendbird.com/v3';
-        const MASTER_API_TOKEN = 'Bearer 06ab48d570b66099a56975c0de1ad7762ea904b6';
-        const USER_ID = 'sbsg'; // User ID you created
-        const USER_ACCESS_TOKEN = 'ba8da239173d8a8375c2cb3a0ca4a477d86937c0'; // Access token for the user
+  <script>
+    // Speech Recognition for voice input
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    const chatBox = document.getElementById('chatBox');
+    const speakBtn = document.getElementById('speakBtn');
 
-        // Send a message
-        async function sendMessage() {
-            const message = document.getElementById('messageInput').value.trim();
-            if (!message) {
-                alert('Please enter a message.');
-                return;
-            }
+    // Sendbird Config
+    const API_URL = 'https://api-bf738831-5030-460b-9891-ac5446aae79c.sendbird.com/v3';
+    const API_TOKEN = '06ab48d570b66099a56975c0de1ad7762ea904b6';
+    const USER_ID = 'sbsg'; // Your chatbot user ID
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/users/${USER_ID}/messages`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': MASTER_API_TOKEN
-                    },
-                    body: JSON.stringify({
-                        message_type: 'MESG',
-                        user_id: USER_ID,
-                        message: message,
-                        access_token: USER_ACCESS_TOKEN
-                    })
-                });
+    // Text-to-Speech (eSpeak NG or Web Speech API)
+    const speakText = (text) => {
+      const msg = new SpeechSynthesisUtterance(text); // Use Web Speech API for simplicity
+      msg.lang = 'en-US';
+      window.speechSynthesis.speak(msg);
+    };
 
-                const result = await response.json();
+    // Handle voice input
+    speakBtn.addEventListener('click', () => {
+      recognition.start();
+    });
 
-                if (response.ok) {
-                    console.log('Message sent:', result);
-                    const chatContainer = document.getElementById('chatContainer');
-                    const messageElement = document.createElement('p');
-                    messageElement.textContent = `You: ${message}`;
-                    chatContainer.appendChild(messageElement);
+    recognition.onresult = async (event) => {
+      const userInput = event.results[0][0].transcript;
+      chatBox.value += `You: ${userInput}\n`;
 
-                    // Display the response from the bot
-                    const botMessageElement = document.createElement('p');
-                    botMessageElement.textContent = `Bot: ${result.message}`;
-                    chatContainer.appendChild(botMessageElement);
-                } else {
-                    console.error('Error sending message:', result);
-                    alert(`Error: ${result.message}`);
-                }
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('An error occurred. Check the console for details.');
-            }
-        }
-    </script>
+      // Send user input to Sendbird
+      const response = await fetch(`${API_URL}/users/${USER_ID}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Api-Token': API_TOKEN
+        },
+        body: JSON.stringify({
+          message_type: 'MESG',
+          user_id: USER_ID,
+          message: userInput
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) {
+        chatBox.value += `Error: ${data.message}\n`;
+      } else {
+        const botResponse = data.message;
+        chatBox.value += `Bot: ${botResponse}\n`;
+
+        // Speak the response
+        speakText(botResponse);
+      }
+    };
+
+    recognition.onerror = (error) => {
+      console.error('Speech recognition error:', error);
+    };
+  </script>
 </body>
 </html>
