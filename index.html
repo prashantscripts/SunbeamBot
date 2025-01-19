@@ -14,22 +14,21 @@
   </div>
 
   <script>
-    // Speech Recognition for voice input
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    const chatBox = document.getElementById('chatBox');
-    const speakBtn = document.getElementById('speakBtn');
-
-    // Sendbird Config
     const API_URL = 'https://api-bf738831-5030-460b-9891-ac5446aae79c.sendbird.com/v3';
     const API_TOKEN = '06ab48d570b66099a56975c0de1ad7762ea904b6';
-    const USER_ID = 'sbsg'; // Your chatbot user ID
+    const USER_ID = 'sbsg';
 
-    // Text-to-Speech (eSpeak NG or Web Speech API)
+    // Text-to-Speech
     const speakText = (text) => {
-      const msg = new SpeechSynthesisUtterance(text); // Use Web Speech API for simplicity
+      const msg = new SpeechSynthesisUtterance(text);
       msg.lang = 'en-US';
       window.speechSynthesis.speak(msg);
     };
+
+    // Speech Recognition
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    const chatBox = document.getElementById('chatBox');
+    const speakBtn = document.getElementById('speakBtn');
 
     // Handle voice input
     speakBtn.addEventListener('click', () => {
@@ -44,31 +43,4 @@
       const response = await fetch(`${API_URL}/users/${USER_ID}/messages`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Api-Token': API_TOKEN
-        },
-        body: JSON.stringify({
-          message_type: 'MESG',
-          user_id: USER_ID,
-          message: userInput
-        })
-      });
-
-      const data = await response.json();
-      if (data.error) {
-        chatBox.value += `Error: ${data.message}\n`;
-      } else {
-        const botResponse = data.message;
-        chatBox.value += `Bot: ${botResponse}\n`;
-
-        // Speak the response
-        speakText(botResponse);
-      }
-    };
-
-    recognition.onerror = (error) => {
-      console.error('Speech recognition error:', error);
-    };
-  </script>
-</body>
-</html>
+          'Content-Type': 'application
