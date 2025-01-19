@@ -1,98 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice-Enabled Chatbot</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    #chatContainer {
-      width: 100%;
-      height: 600px;
-      border: 1px solid #ccc;
-      margin: 20px 0;
-    }
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice-Enabled Chatbot</title>
 </head>
 <body>
-  <h1>Voice-Enabled Chatbot</h1>
+    <h1>Chat with SunbeamBot</h1>
+    <input type="text" id="userInput" placeholder="Type a message or click Speak" />
+    <button id="sendButton">Send</button>
+    <button id="speakButton">Speak</button>
 
-  <!-- Iframe to Embed the Chatbot -->
-  <iframe 
-    id="chatContainer" 
-    src="https://aichatbot.sendbird.com/playground/index.html?app_id=BF738831-5030-460B-9891-AC5446AAE79C&bot_id=onboarding_bot&region=ap-8" 
-    frameborder="0">
-  </iframe>
+    <script>
+        const apiUrl = "https://api-bf738831-5030-460b-9891-ac5446aae79c.sendbird.com/v3";
+        const apiToken = "06ab48d570b66099a56975c0de1ad7762ea904b6";
+        const userId = "sbsg";
+        const accessToken = "ba8da239173d8a8375c2cb3a0ca4a477d86937c0";
 
-  <!-- Voice Buttons -->
-  <div>
-    <button id="speakBtn">🎤 Speak</button>
-    <button id="stopBtn" disabled>🛑 Stop</button>
-  </div>
+        // Function to send a message to the chatbot
+        async function sendMessage(message) {
+            const endpoint = `${apiUrl}/users/${userId}/messages`;
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Api-Token": apiToken,
+                    },
+                    body: JSON.stringify({
+                        message_type: "MESG",
+                        user_id: userId,
+                        message: message,
+                    }),
+                });
+                const data = await response.json();
+                if (data.message) {
+                    speak(data.message); // Speak the response
+                } else {
+                    console.error("Error: ", data);
+                }
+            } catch (error) {
+                console.error("Message sending failed: ", error);
+            }
+        }
 
-  <script>
-    // Check for browser compatibility
-    if ('speechSynthesis' in window && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-US';
+        // Function to use Speech Synthesis for output
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
+        }
 
-      // Buttons
-      const speakBtn = document.getElementById('speakBtn');
-      const stopBtn = document.getElementById('stopBtn');
+        // Button click to send text input message
+        document.getElementById("sendButton").addEventListener("click", () => {
+            const input = document.getElementById("userInput").value;
+            if (input) {
+                sendMessage(input);
+            }
+        });
 
-      // Start Speech Recognition
-      speakBtn.addEventListener('click', () => {
-        recognition.start();
-        speakBtn.disabled = true;
-        stopBtn.disabled = false;
-      });
-
-      // Stop Speech Recognition
-      stopBtn.addEventListener('click', () => {
-        recognition.stop();
-        speakBtn.disabled = false;
-        stopBtn.disabled = true;
-      });
-
-      // Handle Speech Input
-      recognition.onresult = (event) => {
-        const userInput = event.results[0][0].transcript;
-        alert(`You said: ${userInput}`);
-        speakText(userInput);
-        speakBtn.disabled = false;
-        stopBtn.disabled = true;
-      };
-
-      // Handle Errors
-      recognition.onerror = () => {
-        alert('Error recognizing speech. Please try again.');
-        speakBtn.disabled = false;
-        stopBtn.disabled = true;
-      };
-
-    } else {
-      alert('Your browser does not support Speech Recognition or Speech Synthesis.');
-      document.getElementById('speakBtn').disabled = true;
-      document.getElementById('stopBtn').disabled = true;
-    }
-
-    // Text-to-Speech Function
-    const speakText = (text) => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      window.speechSynthesis.speak(utterance);
-    };
-  </script>
+        // Button click to activate voice input
+        document.getElementById("speakButton").addEventListener("click", () => {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-US";
+            recognition.onresult = (event) => {
+                const spokenText = event.results[0][0].transcript;
+                document.getElementById("userInput").value = spokenText;
+                sendMessage(spokenText); // Send the spoken message
+            };
+            recognition.start();
+        });
+    </script>
 </body>
 </html>
