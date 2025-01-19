@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice Chatbot</title>
+  <title>Voice-Enabled Chatbot</title>
 </head>
 <body>
   <div>
@@ -11,6 +11,7 @@
     <textarea id="chatBox" rows="10" cols="50" readonly></textarea>
     <br />
     <button id="speakBtn">Speak</button>
+    <p id="errorMsg" style="color: red;"></p>
   </div>
 
   <script>
@@ -25,22 +26,64 @@
       window.speechSynthesis.speak(msg);
     };
 
-    // Speech Recognition
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    // Check for Speech Recognition compatibility
+    let recognition;
+    try {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+    } catch (e) {
+      document.getElementById('errorMsg').innerText = 'Speech Recognition API is not supported in this browser.';
+    }
+
     const chatBox = document.getElementById('chatBox');
     const speakBtn = document.getElementById('speakBtn');
 
-    // Handle voice input
-    speakBtn.addEventListener('click', () => {
-      recognition.start();
-    });
+    // Start Speech Recognition when Speak button is clicked
+    if (recognition) {
+      speakBtn.addEventListener('click', () => {
+        recognition.start();
+        document.getElementById('errorMsg').innerText = 'Listening... Speak now!';
+      });
 
-    recognition.onresult = async (event) => {
-      const userInput = event.results[0][0].transcript;
-      chatBox.value += `You: ${userInput}\n`;
+      recognition.onresult = async (event) => {
+        const userInput = event.results[0][0].transcript;
+        chatBox.value += `You: ${userInput}\n`;
+        document.getElementById('errorMsg').innerText = ''; // Clear error message
 
-      // Send user input to Sendbird
-      const response = await fetch(`${API_URL}/users/${USER_ID}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application
+        // Send user input to Sendbird
+        try {
+          const response = await fetch(`${API_URL}/users/${USER_ID}/messages`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json; charset=utf8',
+              'Api-Token': API_TOKEN
+            },
+            body: JSON.stringify({
+              message_type: 'MESG',
+              user_id: USER_ID,
+              message: userInput
+            })
+          });
+
+          const data = await response.json();
+          if (data.error) {
+            chatBox.value += `Error: ${data.message}\n`;
+          } else {
+            const botResponse = data.message;
+            chatBox.value += `Bot: ${botResponse}\n`;
+            speakText(botResponse);
+          }
+        } catch (err) {
+          chatBox.value += `Error sending message: ${err.message}\n`;
+        }
+      };
+
+      recognition.onerror = (error) => {
+        document.getElementById('errorMsg').innerText = `Speech recognition error: ${error.error}`;
+      };
+    }
+  </script>
+</body>
+</html>
